@@ -4,7 +4,7 @@ Feature: Installation and device operations traced to SmartGN US32 through US37
   Live broker ACL, session revocation latency and PostgreSQL contention are separate integration gates.
 
   Scenario: US32 and US34 create and assign an installation
-    Given installation fixtures with active owned resources and an enabled installer
+    Given installation fixtures with active owned resources, an eligible installer and verified purchase
     When SuperAdmin creates a request and assigns the installer
     Then the request progresses from PENDING to ASSIGNED
     And assigning a disabled installer is rejected
