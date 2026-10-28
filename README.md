@@ -25,7 +25,7 @@ The startup script generates ignored `.local/integration.env`, builds both servi
 
 All published ports bind to loopback. Container-to-container calls use Docker DNS. The opt-in `local-bootstrap` profile creates the generated local SuperAdmin only when its email is absent; credentials are in `.local/integration.env` and are never printed by scripts. Installer catalogue records never create IAM accounts.
 
-These are local HTTP/MQTT transport checks, not evidence of production TLS, physical-device firmware, actual telemetry ingestion, Niubiz, SUNAT or external message delivery. The future Billing/Notifications interfaces are test doubles, not definitive upstream APIs.
+This composition provides labeled Billing/Notifications doubles and a provisional Telemetry adapter. To connect actual Payments & Billing, use its integrated composition or configure the authenticated checkout, payment-confirmation and event-delivery contracts described in the API documentation.
 
 ## Contracts and ownership
 
@@ -33,8 +33,6 @@ These are local HTTP/MQTT transport checks, not evidence of production TLS, phys
 - [Local development](docs/local-development.md)
 - [Public and private API contracts](docs/api/operational-workflows.md)
 - [Device provisioning and provisional Telemetry port](docs/contracts/device-provisioning.md)
-- [Executed validation](docs/verification.md)
-- [User-story traceability](docs/traceability.md)
 - [Exported OpenAPI](docs/api/openapi.json)
 
 Code lives under `src/main/java/com/smartgn/installationdevicemanagement/`. Domain/application code uses immutable models and persistence/transaction ports; HTTP and PostgreSQL adapters translate those contracts. Flyway manages the `installation` PostgreSQL schema. Spring's `management.*` configuration namespace belongs to Actuator.

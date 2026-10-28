@@ -2,10 +2,10 @@
 
 Installation & Device Management provides properties, supply points, external installer records, provisional and paid installation requests, assignment and appointment history, device associations and confirmed provisioning. IAM supplies current identity and delegated permission checks.
 
-The services run locally in Docker with independent PostgreSQL databases and a real EMQX broker. Billing, Notifications and Telemetry integrations use labeled local contract doubles.
+The local Docker environment uses independent PostgreSQL databases and an authenticated EMQX broker. The bundled composition provides labeled development doubles for Billing, Notifications and Telemetry. The integrated Payments environment connects the actual Billing service through its authenticated HTTP contracts.
 
 - [Architecture](architecture.md)
-- [User-story traceability](traceability.md)
-- [Executed verification](verification.md)
+- [API contracts](api/operational-workflows.md)
+- [Exported OpenAPI](api/openapi.json)
 
-Runtime OpenAPI documents the available operations. The verification record distinguishes executed application/broker checks from simulated integrations and unverified provider behavior.
+Runtime OpenAPI documents request and response schemas. Each service owns its data and communicates through authenticated contracts and events.
