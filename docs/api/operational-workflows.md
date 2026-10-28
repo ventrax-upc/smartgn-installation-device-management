@@ -43,3 +43,7 @@ New domain events carry event_id, event_type, aggregate_id, correlation_id and a
 400 identifies invalid input, 401 missing/invalid current identity, 403 denied role/ownership/function, 404 missing resource, 409 stale/incompatible state and 503 an unconfirmed dependency. Unknown connectivity remains unavailable and never becomes a fabricated measurement.
 
 InstallerAssigned is also emitted after an effective reassignment and includes accountId/installerId. InstallationAppointmentChanged includes accountId, installerId and the effective from/to window; InstallationPaymentVerified includes accountId/purchaseOrderId. These identifiers let future notification consumers resolve recipient identity through IAM's private context contract, without sharing databases or exposing one-time secrets.
+
+### Billing checkout context
+
+GET `/internal/v1/installations/{id}/checkout-context` returns the installation ID, lifecycle status and contact email to the authenticated Billing service before charging a provisional request. It uses local Installation data and never calls IAM.

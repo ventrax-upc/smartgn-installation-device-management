@@ -21,8 +21,30 @@ import java.util.*;
 public class RequestController {
     private final InstallationRequests operations;
 
-    public RequestController(InstallationRequests operations) {
+    private final org.springframework.jdbc.core.JdbcTemplate checkoutDb;
+
+    public RequestController(
+            InstallationRequests operations,
+            org.springframework.jdbc.core.JdbcTemplate checkoutDb) {
         this.operations = operations;
+        this.checkoutDb = checkoutDb;
+    }
+
+    @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "serviceAuth")
+    @GetMapping("/internal/v1/installations/{id}/checkout-context")
+    @Operation(summary = "Read private provisional checkout context for Billing")
+    public java.util.Map<String, Object> checkoutContext(@PathVariable UUID id) {
+        return checkoutDb
+                .queryForList(
+                        "SELECT i.id, i.status, r.contact_email AS email FROM installations i JOIN"
+                            + " installation_requests r ON r.request_id=i.id WHERE i.id=?",
+                        id)
+                .stream()
+                .findFirst()
+                .orElseThrow(
+                        () ->
+                                new org.springframework.web.server.ResponseStatusException(
+                                        HttpStatus.NOT_FOUND));
     }
 
     public record Contact(

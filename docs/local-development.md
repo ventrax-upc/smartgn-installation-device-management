@@ -23,4 +23,4 @@ Installation uses the `installation` PostgreSQL schema. This is a storage identi
 
 JWTs require USER or SUPERADMIN, the configured issuer and audience, an active account and the current session version. Clients use POST assignment/completion and the device payload documented in OpenAPI.
 
-Local loops use HTTP/MQTT inside an isolated Docker network with loopback host bindings. These checks do not establish production TLS, real telemetry ingestion, firmware buffering, provider delivery or cloud availability.
+Local services communicate over HTTP/MQTT inside an isolated Docker network with loopback host bindings. Production deployment requires separate transport security and external provider configuration.

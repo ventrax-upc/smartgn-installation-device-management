@@ -32,11 +32,11 @@ class Handler(BaseHTTPRequestHandler):
         path = urlparse(self.path)
         if path.path == '/health':
             return self.respond(200, {'mode': 'LOCAL_CONTRACT_DOUBLE'})
-        if path.path.startswith('/local-contracts/entitlements/'):
+        if path.path.startswith('/local-contracts/entitlements/') or (path.path.startswith('/internal/v1/accounts/') and path.path.endswith('/entitlements')):
             if not self.authorized('BILLING_FIXTURE_TOKEN'):
                 return self.respond(401, {})
             with sqlite3.connect(DB) as db:
-                row = db.execute('SELECT active FROM entitlements WHERE account=?', (path.path.rsplit('/', 1)[-1],)).fetchone()
+                row = db.execute('SELECT active FROM entitlements WHERE account=?', ((path.path.split('/')[-2] if path.path.endswith('/entitlements') else path.path.rsplit('/', 1)[-1]),)).fetchone()
             return self.respond(200, {'proActive': bool(row and row[0])})
         if not self.authorized('FIXTURE_ADMIN_TOKEN'):
             return self.respond(401, {})
