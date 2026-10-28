@@ -2,7 +2,6 @@ target/
 .env
 .env.*
 !.env.example
-!.env.render.example
 .local/
 .idea/
 *.iml
@@ -10,6 +9,5 @@ target/
 .DS_Store
 __pycache__/
 *.py[cod]
-docs/
 tools/__pycache__/
 AGENTS.md

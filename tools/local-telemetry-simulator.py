@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Explicit development simulator; not the SmartGN Telemetry implementation.
 
-Only administrator-provided fixtures supply measurements or buffer confirmations.
+Only administrator-provided fixtures supply operational metadata or buffer confirmations.
 Associations and fixtures survive process/container restart in SQLite.
 """
 import hmac
@@ -124,25 +124,6 @@ class Handler(BaseHTTPRequestHandler):
             db.execute("INSERT OR REPLACE INTO associations VALUES(?,?,?)", (device, version, json.dumps(payload)))
             return 200, {"deviceId": device, "version": version, "confirmed": True}
 
-        if self.path == "/internal/v1/telemetry/batch-query":
-            return self.batch(db, payload)
-
-        if self.path == "/internal/v1/telemetry/periods-query":
-            periods = payload["periods"]
-            if not periods or len(periods) > 101:
-                return 400, {"error": "Request 1..101 exact periods"}
-            results = []
-            for period in periods:
-                lower, upper = period["from"], period["to"]
-                if timestamp(lower) >= timestamp(upper):
-                    raise ValueError()
-                status, snapshot = self.batch(db, {"accountId": payload["accountId"], "pointIds": payload["pointIds"],
-                                                  "from": lower, "to": upper}, exact_only=True)
-                if status != 200:
-                    return status, snapshot
-                results.append({"from": lower, "to": upper, "snapshot": snapshot})
-            return 200, {"periods": results}
-
         if self.path == "/internal/v1/devices/status-query":
             account = identifier(payload["accountId"])
             if payload.get("purpose") != "DEVICE_OPERATIONS":
@@ -163,30 +144,8 @@ class Handler(BaseHTTPRequestHandler):
             version = int(payload["associationVersion"])
             row = db.execute("SELECT pending,evidence FROM buffers WHERE device=? AND version=?", (device, version)).fetchone()
             if row is None:
-                return 200, {"drained": False, "pendingReadings": 0, "evidenceId": None, "pendingCountKnown": False}
+                return 503, {"error": "Buffer state is unknown"}
             return 200, {"drained": row[0] == 0, "pendingReadings": row[0], "evidenceId": row[1], "pendingCountKnown": True}
-
-        if self.path in ("/fixtures/metrics", "/fixtures/period-metrics"):
-            account = identifier(payload["accountId"])
-            period = self.path.endswith("period-metrics")
-            if period:
-                lower, upper = timestamp(payload["from"]), timestamp(payload["to"])
-                if lower >= upper:
-                    raise ValueError()
-            for metric in payload["metrics"]:
-                point = identifier(metric["pointId"])
-                metric["pointId"] = point
-                # All timestamps and measurements must be provided explicitly.
-                required = ("volumeM3", "pressureKpa", "gasDetected", "valveState", "connectionState", "validityState", "measuredAt", "calculatedAt", "gap")
-                if any(field not in metric for field in required):
-                    raise ValueError()
-                if not period and payload.get("refreshTimestamps") is True:
-                    metric["_fixtureClock"] = True
-                if period:
-                    db.execute("INSERT OR REPLACE INTO period_metrics VALUES(?,?,?,?,?)", (account, point, lower.isoformat(), upper.isoformat(), json.dumps(metric)))
-                else:
-                    db.execute("INSERT OR REPLACE INTO metrics VALUES(?,?,?)", (account, point, json.dumps(metric)))
-            return 200, {"mode": "DEVELOPMENT_SIMULATOR", "fixturesStored": len(payload["metrics"])}
 
         if self.path == "/fixtures/buffer":
             device = identifier(payload["deviceId"])
@@ -210,42 +169,6 @@ class Handler(BaseHTTPRequestHandler):
             db.execute("INSERT OR REPLACE INTO operational_status VALUES(?,?,?)", (account, device, json.dumps(status)))
             return 200, {"mode": "DEVELOPMENT_SIMULATOR", "fixtureStored": True}
         return 404, {"error": "Not found"}
-
-    def batch(self, db, payload, exact_only=False):
-        account = identifier(payload["accountId"])
-        points = list(dict.fromkeys(identifier(point) for point in payload["pointIds"]))
-        if not points or len(points) > 100:
-            return 400, {"error": "Request 1..100 points per batch"}
-        marks = ",".join("?" for _ in points)
-        current = db.execute("SELECT payload FROM associations a WHERE json_extract(payload,'$.pointId') IN (" + marks +
-                             ") AND version=(SELECT MAX(version) FROM associations WHERE device=a.device)", points).fetchall()
-        if any(json.loads(row[0]).get("validTo") is None and json.loads(row[0])["accountId"] != account for row in current):
-            return 403, {"error": "Point is outside account scope"}
-        lower, upper = payload.get("from"), payload.get("to")
-        if lower and upper:
-            rows = db.execute("SELECT payload FROM period_metrics WHERE account=? AND point IN (" + marks +
-                              ") AND lower=? AND upper=?", [account, *points, timestamp(lower).isoformat(), timestamp(upper).isoformat()]).fetchall()
-            values = [json.loads(row[0]) for row in rows]
-            metrics = {metric["pointId"]: metric for metric in values}
-        else:
-            metrics = {}
-        if not exact_only:
-            rows = db.execute("SELECT payload FROM metrics WHERE account=? AND point IN (" + marks + ")", [account, *points]).fetchall()
-            for row in rows:
-                metric = json.loads(row[0])
-                measured = metric.get("measuredAt")
-                if measured and lower and timestamp(measured) < timestamp(lower):
-                    continue
-                if measured and upper and timestamp(measured) >= timestamp(upper):
-                    continue
-                metrics.setdefault(metric["pointId"], metric)
-        for metric in metrics.values():
-            fixture_clock = metric.pop("_fixtureClock", False)
-            if fixture_clock and not lower and not upper:
-                metric["measuredAt"] = now()
-                metric["calculatedAt"] = now()
-        return 200, {"metrics": list(metrics.values()), "calculatedAt": now()}
-
 
 class BoundedHTTPServer(ThreadingHTTPServer):
     request_queue_size = 128

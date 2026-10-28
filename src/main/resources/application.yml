@@ -1,23 +1,17 @@
 spring:
   application:
-    name: smartgn-management-service
+    name: smartgn-installation-device-management
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/smartgn-management-db}
-    username: ${SPRING_DATASOURCE_USERNAME:smartgn_management}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/installation_db}
+    username: ${SPRING_DATASOURCE_USERNAME:smartgn_installation}
     password: ${SPRING_DATASOURCE_PASSWORD}
     hikari:
       maximum-pool-size: 12
-      connection-init-sql: SET search_path TO management
-  data:
-    redis:
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      connect-timeout: 500ms
-      timeout: 500ms
+      connection-init-sql: SET search_path TO installation
   flyway:
     enabled: true
-    schemas: management
-    default-schema: management
+    schemas: installation
+    default-schema: installation
     create-schemas: true
 server:
   port: ${PORT:8081}
@@ -39,7 +33,7 @@ smartgn:
   security:
     jwt-secret: ${JWT_SECRET}
     jwt-issuer: ${JWT_ISSUER:smartgn-iam-service}
-    jwt-audience: ${JWT_AUDIENCE:}
+    jwt-audience: ${JWT_AUDIENCE:smartgn-api}
     allowed-origins: ${ALLOWED_ORIGINS:http://localhost:4200}
   devices:
     credential-key: ${DEVICE_CREDENTIAL_KEY}
@@ -52,6 +46,3 @@ smartgn:
     api-secret: ${EMQX_API_SECRET:}
     username: ${EMQX_USERNAME:admin}
     password: ${EMQX_PASSWORD}
-  retention:
-    maintenance-years: ${MAINTENANCE_RETENTION_YEARS:5}
-    audit-years: ${AUDIT_RETENTION_YEARS:5}
