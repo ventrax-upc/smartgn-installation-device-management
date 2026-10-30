@@ -1,8 +1,8 @@
 .git
-.env
-.env.*
 .local
 target
-docs
-tools
-scripts
+.env
+.env.*
+*.log
+.idea
+.vscode

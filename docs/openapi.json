@@ -1,0 +1,3208 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SmartGN - Installation & Device Management",
+    "description": "Properties, supply points, external IoT installers, installation requests, device provisioning and association history. Owns an independent PostgreSQL database and integrates through authenticated HTTP and durable events. Local fixtures do not establish productive external integration.",
+    "license": {
+      "name": "MIT"
+    },
+    "version": "v1"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:18081",
+      "description": "Generated server url"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Properties",
+      "description": "Principal-owned properties and preserved administrative history."
+    },
+    {
+      "name": "Supply points",
+      "description": "Owned supply points and accessible meter scopes."
+    },
+    {
+      "name": "Installers",
+      "description": "SUPERADMIN administration of external accredited IoT installers."
+    },
+    {
+      "name": "Installation requests",
+      "description": "Provisional requests, verified purchases, assignments and installation state transitions."
+    },
+    {
+      "name": "Devices",
+      "description": "Versioned associations, one-time credentials and asynchronous provisioning."
+    },
+    {
+      "name": "Synchronization",
+      "description": "SUPERADMIN inspection and retry of durable synchronization operations."
+    },
+    {
+      "name": "Internal installation",
+      "description": "Private service-to-service contracts."
+    }
+  ],
+  "paths": {
+    "/api/v1/supply-points/{id}": {
+      "get": {
+        "tags": [
+          "Supply points"
+        ],
+        "summary": "Get an authorized supply point",
+        "description": "Checks administrative ownership before returning supply-point data. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "getPoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyPoint"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Supply points"
+        ],
+        "summary": "Update an owned supply point",
+        "description": "Updates descriptive fields using the current version without changing the meter identity or property ownership. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "updatePoint",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PointUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyPoint"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/properties/{id}": {
+      "get": {
+        "tags": [
+          "Properties"
+        ],
+        "summary": "Get an authorized property",
+        "description": "Checks account ownership before returning administrative property data. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "get",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Property"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Properties"
+        ],
+        "summary": "Update an owned property",
+        "description": "Requires principal ownership and the current optimistic concurrency version. Ownership is immutable. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "update",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PropertyUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Property"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Properties"
+        ],
+        "summary": "Deactivate an owned property",
+        "description": "Performs logical deactivation and preserves history. Associated resources remain subject to their lifecycle rules. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "deactivate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "description": "Operation-specific query or request parameter.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64",
+              "minimum": 0
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Property"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/installers/{id}": {
+      "get": {
+        "tags": [
+          "Installers"
+        ],
+        "summary": "Get an installer record",
+        "description": "Requires SUPERADMIN. Returns catalogue and availability data for the external installer. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "get_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Installer"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Installers"
+        ],
+        "summary": "Update an installer record",
+        "description": "Requires SUPERADMIN and the current version. Preserves assignment history and audit information. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "update_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Update"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Installer"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/installations/{id}/target": {
+      "put": {
+        "tags": [
+          "Installation requests"
+        ],
+        "summary": "Bind a paid request to its supply point",
+        "description": "Requires principal ownership, verified payment, an active owned target and the current request version. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "target",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Target"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Installation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/installations/{id}/appointment": {
+      "put": {
+        "tags": [
+          "Installation requests"
+        ],
+        "summary": "Confirm an installation appointment",
+        "description": "Requires SUPERADMIN and the current version. Records a valid future appointment interval for assigned work. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "appointment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Appointment"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Installation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/internal/v1/installations/payment-confirmations": {
+      "post": {
+        "tags": [
+          "Internal installation"
+        ],
+        "summary": "Apply a verified installation payment",
+        "description": "Accepts trusted purchase evidence. Replays are idempotent; mismatched customers or purchase references are rejected. Authentication: private service credential; user JWTs are not accepted. Internal routes must remain outside public gateway routing.",
+        "operationId": "confirm",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Payment"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Installation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private service credential."
+          }
+        },
+        "security": [
+          {
+            "serviceAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/properties": {
+      "get": {
+        "tags": [
+          "Properties"
+        ],
+        "summary": "List owned properties",
+        "description": "Requires a principal USER and returns properties belonging to that account. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "list",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Zero-based number of matching records to skip.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0,
+              "minimum": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of matching records to return, from 1 to 100.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Property"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Properties"
+        ],
+        "summary": "Create an owned property",
+        "description": "Requires a principal USER. Ownership is derived from the authenticated identity and cannot be assigned to another account. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PropertyInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Resource created.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Property"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/properties/{propertyId}/supply-points": {
+      "get": {
+        "tags": [
+          "Supply points"
+        ],
+        "summary": "List authorized supply points",
+        "description": "Checks access to the parent property before returning its supply points. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "listPoints",
+        "parameters": [
+          {
+            "name": "propertyId",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Zero-based number of matching records to skip.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0,
+              "minimum": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of matching records to return, from 1 to 100.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SupplyPoint"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Supply points"
+        ],
+        "summary": "Create an owned supply point",
+        "description": "Requires principal ownership of the active parent property. Creates a stable meter identity for authorization. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "createPoint",
+        "parameters": [
+          {
+            "name": "propertyId",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PointInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Resource created.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SupplyPoint"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/operations/outbox/{id}/retry": {
+      "post": {
+        "tags": [
+          "Synchronization"
+        ],
+        "summary": "Request an immediate synchronization retry",
+        "description": "Requires SUPERADMIN and eligible operation state. Retains the original operation identity and idempotency guarantees. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "retry",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/installers": {
+      "get": {
+        "tags": [
+          "Installers"
+        ],
+        "summary": "List accredited installers",
+        "description": "Requires SUPERADMIN. Lists external installer catalogue records, not IAM accounts. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "list_1",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Zero-based number of matching records to skip.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0,
+              "minimum": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of matching records to return, from 1 to 100.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Installer"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Installers"
+        ],
+        "summary": "Register an accredited installer",
+        "description": "Requires SUPERADMIN. Records identification, accreditation, contact and availability without creating an IAM identity. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "create_1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Input"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Resource created.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Installer"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/installations": {
+      "get": {
+        "tags": [
+          "Installation requests"
+        ],
+        "summary": "List administered installations",
+        "description": "Requires SUPERADMIN. Lists installation requests and their persisted lifecycle states. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "list_2",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Zero-based number of matching records to skip.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0,
+              "minimum": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of matching records to return, from 1 to 100.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Optional lifecycle-status filter using the service's documented state values.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PROVISIONAL",
+                "PENDING",
+                "ASSIGNED",
+                "IN_PROGRESS",
+                "COMPLETED",
+                "CANCELLED"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Installation"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Installation requests"
+        ],
+        "summary": "Create a provisional installation request",
+        "description": "Accepts contact and location data without creating an IAM account. Anonymous callers cannot reference private property or meter targets. Authentication: no user JWT required; the operation-specific token or checkout secret still applies when specified.",
+        "operationId": "create_2",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Create"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Resource created.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Installation"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/installations/{id}/complete": {
+      "post": {
+        "tags": [
+          "Installation requests"
+        ],
+        "summary": "Complete an installation once",
+        "description": "Requires SUPERADMIN, the exact active device association, confirmed provisioning and fresh connectivity evidence. Replays preserve the completion date. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "complete",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Installation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/installations/{id}/cancel": {
+      "post": {
+        "tags": [
+          "Installation requests"
+        ],
+        "summary": "Cancel an unfinished installation",
+        "description": "Requires SUPERADMIN, the current version and a reason. Device revocation must be confirmed first when applicable. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "cancel",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelInstallation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Installation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/installations/{id}/assign": {
+      "post": {
+        "tags": [
+          "Installation requests"
+        ],
+        "summary": "Assign an eligible installer",
+        "description": "Requires SUPERADMIN, a verified purchase, a linked target and an active accredited installer with availability. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "assign",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignInstaller"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Installation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/devices": {
+      "get": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "List authorized devices",
+        "description": "Allows SUPERADMIN administration or authorized principal/delegated point-scoped lookup. Delegates must provide an allowed meter function. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "list_3",
+        "parameters": [
+          {
+            "name": "pointId",
+            "in": "query",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Zero-based number of matching records to skip.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0,
+              "minimum": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of matching records to return, from 1 to 100.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Optional lifecycle-status filter using the service's documented state values.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDING",
+                "ACTIVE",
+                "REVOKED",
+                "FAILED"
+              ]
+            }
+          },
+          {
+            "name": "function",
+            "in": "query",
+            "description": "Requested IAM meter function. A grant for another function does not authorize this operation.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid payload, timestamp or parameter",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceView"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or invalid IAM token",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceView"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role or account is not authorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceView"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Device, installation or associated resource was not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceView"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Device operation conflicts with its current state or version",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceView"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Required external service did not confirm the operation",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceView"
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DeviceView"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "Register a device for provisioning",
+        "description": "Requires SUPERADMIN and a matching installation, installer and supply point. Returns a one-time credential and a pending operation, not confirmed activation. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDevice"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Invalid payload, timestamp or parameter",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or invalid IAM token",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role or account is not authorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Device, installation or associated resource was not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Device operation conflicts with its current state or version",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Required external service did not confirm the operation",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Request accepted; asynchronous work or delivery may still be pending.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/devices/{id}/credentials/rotate": {
+      "post": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "Request device credential rotation",
+        "description": "Requires SUPERADMIN. Returns the new credential once; broker confirmation is processed asynchronously. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "rotate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid payload, timestamp or parameter",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or invalid IAM token",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role or account is not authorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Device, installation or associated resource was not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Device operation conflicts with its current state or version",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Required external service did not confirm the operation",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Request accepted; asynchronous work or delivery may still be pending.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/devices/{id}/credentials/revoke": {
+      "post": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "Request device credential revocation",
+        "description": "Requires SUPERADMIN. Requests broker revocation and session disconnection; acceptance alone is not confirmation. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "revoke",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid payload, timestamp or parameter",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Device"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or invalid IAM token",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Device"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role or account is not authorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Device"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Device, installation or associated resource was not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Device"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Device operation conflicts with its current state or version",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Device"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Required external service did not confirm the operation",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Device"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Request accepted; asynchronous work or delivery may still be pending.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Device"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/devices/{id}/associations": {
+      "get": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "Get device association history",
+        "description": "Requires SUPERADMIN. Returns preserved association versions without exposing device credentials. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "history",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "Invalid payload, timestamp or parameter",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Association"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or invalid IAM token",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Association"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role or account is not authorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Association"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Device, installation or associated resource was not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Association"
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Device operation conflicts with its current state or version",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Association"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Required external service did not confirm the operation",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Association"
+                  }
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Association"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Devices"
+        ],
+        "summary": "Request a device reassociation",
+        "description": "Requires SUPERADMIN, a valid owned target and association safeguards. Preserves previous versions and records any explicitly justified gap. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "reassociate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Reassociate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "400": {
+            "description": "Invalid payload, timestamp or parameter",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired or invalid IAM token",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Role or account is not authorized",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Device, installation or associated resource was not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Device operation conflicts with its current state or version",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Required external service did not confirm the operation",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Request accepted; asynchronous work or delivery may still be pending.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProvisioningReceipt"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/installers/{id}/status": {
+      "patch": {
+        "tags": [
+          "Installers"
+        ],
+        "summary": "Change installer availability",
+        "description": "Requires SUPERADMIN and the current version. An installer with an active reservation remains subject to assignment constraints. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "status",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Status"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Installer"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/installations/{id}/status": {
+      "patch": {
+        "tags": [
+          "Installation requests"
+        ],
+        "summary": "Advance an installation state",
+        "description": "Requires SUPERADMIN. Applies only eligible start or completion transitions; completion conditions are still enforced. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "transition",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeStatus"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Installation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/installations/{id}/reassign": {
+      "patch": {
+        "tags": [
+          "Installation requests"
+        ],
+        "summary": "Reassign an installation",
+        "description": "Requires SUPERADMIN, the current version and a reason before work starts. Preserves previous assignments. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "reassign",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReassignInstaller"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Installation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/internal/v1/meters/{id}/ownership": {
+      "get": {
+        "tags": [
+          "Internal installation"
+        ],
+        "summary": "Get current meter ownership",
+        "description": "Returns the principal owner and active property/supply-point scope without calling IAM. Authentication: private service credential; user JWTs are not accepted. Internal routes must remain outside public gateway routing.",
+        "operationId": "ownership",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private service credential."
+          }
+        },
+        "security": [
+          {
+            "serviceAuth": []
+          }
+        ]
+      }
+    },
+    "/internal/v1/installations/{id}/checkout-context": {
+      "get": {
+        "tags": [
+          "Internal installation"
+        ],
+        "summary": "Get provisional checkout context",
+        "description": "Returns installation status and contact email for Billing validation using local data only. Authentication: private service credential; user JWTs are not accepted. Internal routes must remain outside public gateway routing.",
+        "operationId": "checkoutContext",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private service credential."
+          }
+        },
+        "security": [
+          {
+            "serviceAuth": []
+          }
+        ]
+      }
+    },
+    "/internal/v1/devices/{id}/authorization": {
+      "get": {
+        "tags": [
+          "Internal installation"
+        ],
+        "summary": "Check a current device association",
+        "description": "Checks the requested association version, provisioning and current owned scope. This is not a historical-reading authorization API. Authentication: private service credential; user JWTs are not accepted. Internal routes must remain outside public gateway routing.",
+        "operationId": "authorization",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "associationVersion",
+            "in": "query",
+            "description": "Exact current device-association version to authorize.",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid private service credential."
+          }
+        },
+        "security": [
+          {
+            "serviceAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/operations/outbox": {
+      "get": {
+        "tags": [
+          "Synchronization"
+        ],
+        "summary": "List synchronization operations",
+        "description": "Requires SUPERADMIN. Returns operational metadata without secrets, protected payloads or claim tokens. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "list_4",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "description": "Zero-based number of matching records to skip.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0,
+              "minimum": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of matching records to return, from 1 to 100.",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Optional lifecycle-status filter using the service's documented state values.",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "deviceId",
+            "in": "query",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "needsAttention",
+            "in": "query",
+            "description": "Operation-specific query or request parameter.",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/JobView"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/operations/outbox/{id}": {
+      "get": {
+        "tags": [
+          "Synchronization"
+        ],
+        "summary": "Inspect a synchronization operation",
+        "description": "Requires SUPERADMIN. Returns the operation's state, attempts and non-sensitive diagnostics. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "get_2",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobView"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/meters": {
+      "get": {
+        "tags": [
+          "Supply points"
+        ],
+        "summary": "List accessible meters and functions",
+        "description": "Returns active meters owned by the principal or currently granted to a delegated USER. Grants remain independent by function. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "list_5",
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": {}
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/v1/installations/{id}": {
+      "get": {
+        "tags": [
+          "Installation requests"
+        ],
+        "summary": "Get an authorized installation",
+        "description": "Allows the principal owner or SUPERADMIN to read lifecycle, appointment and assigned-installer details. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+        "operationId": "get_3",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PointUpdate": {
+        "type": "object",
+        "properties": {
+          "locationName": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 0
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "locationName",
+          "version"
+        ]
+      },
+      "SupplyPoint": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "propertyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "locationName": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "PropertyUpdate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 0
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 0
+          },
+          "propertyType": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "HOUSE|COMMERCIAL|BUILDING"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "address",
+          "name",
+          "propertyType",
+          "version"
+        ]
+      },
+      "Property": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "propertyType": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "Input": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "lastName": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "identification": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 0
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 30,
+            "minLength": 0
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254,
+            "minLength": 0
+          },
+          "accreditationCode": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "available": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "accreditationCode",
+          "firstName",
+          "identification",
+          "lastName",
+          "phone"
+        ]
+      },
+      "Update": {
+        "type": "object",
+        "properties": {
+          "installer": {
+            "$ref": "#/components/schemas/Input"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "installer",
+          "version"
+        ]
+      },
+      "Installer": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "identification": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "accreditationCode": {
+            "type": "string"
+          },
+          "available": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Target": {
+        "type": "object",
+        "properties": {
+          "propertyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "supplyPointId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "propertyId",
+          "supplyPointId",
+          "version"
+        ]
+      },
+      "Installation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "propertyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "pointId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "installerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PROVISIONAL",
+              "PENDING",
+              "ASSIGNED",
+              "IN_PROGRESS",
+              "COMPLETED",
+              "CANCELLED"
+            ]
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "Appointment": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "version"
+        ]
+      },
+      "Payment": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "purchaseOrderId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "installationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "customerAccountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "confirmed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "customerAccountId",
+          "eventId",
+          "installationId",
+          "purchaseOrderId"
+        ]
+      },
+      "PropertyInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 0
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 0
+          },
+          "propertyType": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "HOUSE|COMMERCIAL|BUILDING"
+          }
+        },
+        "required": [
+          "address",
+          "name",
+          "propertyType"
+        ]
+      },
+      "PointInput": {
+        "type": "object",
+        "properties": {
+          "serialNumber": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 0
+          },
+          "locationName": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "locationName",
+          "serialNumber"
+        ]
+      },
+      "RetryRequest": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "reason"
+        ]
+      },
+      "JobView": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string"
+          },
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "availableAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "attempts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "leaseUntil": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastError": {
+            "type": "string"
+          },
+          "needsAttention": {
+            "type": "boolean"
+          },
+          "correlationId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "Contact": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 0
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254,
+            "minLength": 0
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 30,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "email",
+          "name",
+          "phone"
+        ]
+      },
+      "Create": {
+        "type": "object",
+        "properties": {
+          "propertyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "supplyPointId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "contact": {
+            "$ref": "#/components/schemas/Contact"
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "address",
+          "contact"
+        ]
+      },
+      "CancelInstallation": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "reason",
+          "version"
+        ]
+      },
+      "AssignInstaller": {
+        "type": "object",
+        "properties": {
+          "installerId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "installerId"
+        ]
+      },
+      "RegisterDevice": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "supplyPointId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "installerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "installationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "serialNumber": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 0
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 300,
+            "minLength": 0
+          },
+          "installedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "replacementGapReason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "deviceId",
+          "installationId",
+          "installedAt",
+          "installerId",
+          "location",
+          "serialNumber",
+          "supplyPointId"
+        ]
+      },
+      "Device": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "serialNumber": {
+            "type": "string"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "propertyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "pointId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "installationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "installerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "location": {
+            "type": "string"
+          },
+          "installedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACTIVE",
+              "REVOKED",
+              "FAILED"
+            ]
+          },
+          "associationVersion": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "brokerConfirmed": {
+            "type": "boolean"
+          },
+          "telemetryConfirmed": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ProvisioningReceipt": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "$ref": "#/components/schemas/Device"
+          },
+          "credentialId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "mqttUsername": {
+            "type": "string"
+          },
+          "oneTimeCredential": {
+            "type": "string"
+          }
+        }
+      },
+      "Reassociate": {
+        "type": "object",
+        "properties": {
+          "installationId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "resolveGap": {
+            "type": "boolean"
+          },
+          "resolutionReason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "installationId"
+        ]
+      },
+      "Status": {
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "version"
+        ]
+      },
+      "ChangeStatus": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "PROVISIONAL",
+              "PENDING",
+              "ASSIGNED",
+              "IN_PROGRESS",
+              "COMPLETED",
+              "CANCELLED"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "ReassignInstaller": {
+        "type": "object",
+        "properties": {
+          "installerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "installerId",
+          "reason",
+          "version"
+        ]
+      },
+      "DeviceView": {
+        "type": "object",
+        "properties": {
+          "device": {
+            "$ref": "#/components/schemas/Device"
+          },
+          "connectionState": {
+            "type": "string"
+          },
+          "lastContact": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Association": {
+        "type": "object",
+        "properties": {
+          "deviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "accountId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "propertyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "pointId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "validTo": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "confirmed": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "description": "Current IAM JWT. The service verifies the active session and operation-specific ownership, role and meter/function permissions. Roles: USER and SUPERADMIN.",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "serviceAuth": {
+        "type": "http",
+        "description": "Private service credential, independent of user JWTs. Internal routes must remain outside public gateway routing.",
+        "scheme": "bearer"
+      }
+    }
+  }
+}

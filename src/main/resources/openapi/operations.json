@@ -1,0 +1,358 @@
+{
+  "title": "SmartGN - Installation & Device Management",
+  "version": "v1",
+  "description": "Properties, supply points, external IoT installers, installation requests, device provisioning and association history. Owns an independent PostgreSQL database and integrates through authenticated HTTP and durable events. Local fixtures do not establish productive external integration.",
+  "tags": {
+    "Properties": "Principal-owned properties and preserved administrative history.",
+    "Supply points": "Owned supply points and accessible meter scopes.",
+    "Installers": "SUPERADMIN administration of external accredited IoT installers.",
+    "Installation requests": "Provisional requests, verified purchases, assignments and installation state transitions.",
+    "Devices": "Versioned associations, one-time credentials and asynchronous provisioning.",
+    "Synchronization": "SUPERADMIN inspection and retry of durable synchronization operations.",
+    "Internal installation": "Private service-to-service contracts."
+  },
+  "operations": [
+    {
+      "method": "GET",
+      "path": "/api/v1/properties",
+      "tag": "Properties",
+      "summary": "List owned properties",
+      "description": "Requires a principal USER and returns properties belonging to that account. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/properties",
+      "tag": "Properties",
+      "summary": "Create an owned property",
+      "description": "Requires a principal USER. Ownership is derived from the authenticated identity and cannot be assigned to another account. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 201,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/properties/{id}",
+      "tag": "Properties",
+      "summary": "Get an authorized property",
+      "description": "Checks account ownership before returning administrative property data. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/properties/{id}",
+      "tag": "Properties",
+      "summary": "Update an owned property",
+      "description": "Requires principal ownership and the current optimistic concurrency version. Ownership is immutable. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/properties/{id}",
+      "tag": "Properties",
+      "summary": "Deactivate an owned property",
+      "description": "Performs logical deactivation and preserves history. Associated resources remain subject to their lifecycle rules. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/properties/{propertyId}/supply-points",
+      "tag": "Supply points",
+      "summary": "List authorized supply points",
+      "description": "Checks access to the parent property before returning its supply points. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/properties/{propertyId}/supply-points",
+      "tag": "Supply points",
+      "summary": "Create an owned supply point",
+      "description": "Requires principal ownership of the active parent property. Creates a stable meter identity for authorization. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 201,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/supply-points/{id}",
+      "tag": "Supply points",
+      "summary": "Get an authorized supply point",
+      "description": "Checks administrative ownership before returning supply-point data. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/supply-points/{id}",
+      "tag": "Supply points",
+      "summary": "Update an owned supply point",
+      "description": "Updates descriptive fields using the current version without changing the meter identity or property ownership. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/meters",
+      "tag": "Supply points",
+      "summary": "List accessible meters and functions",
+      "description": "Returns active meters owned by the principal or currently granted to a delegated USER. Grants remain independent by function. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/installers",
+      "tag": "Installers",
+      "summary": "List accredited installers",
+      "description": "Requires SUPERADMIN. Lists external installer catalogue records, not IAM accounts. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/installers",
+      "tag": "Installers",
+      "summary": "Register an accredited installer",
+      "description": "Requires SUPERADMIN. Records identification, accreditation, contact and availability without creating an IAM identity. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 201,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/installers/{id}",
+      "tag": "Installers",
+      "summary": "Get an installer record",
+      "description": "Requires SUPERADMIN. Returns catalogue and availability data for the external installer. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/installers/{id}",
+      "tag": "Installers",
+      "summary": "Update an installer record",
+      "description": "Requires SUPERADMIN and the current version. Preserves assignment history and audit information. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/installers/{id}/status",
+      "tag": "Installers",
+      "summary": "Change installer availability",
+      "description": "Requires SUPERADMIN and the current version. An installer with an active reservation remains subject to assignment constraints. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/installations",
+      "tag": "Installation requests",
+      "summary": "List administered installations",
+      "description": "Requires SUPERADMIN. Lists installation requests and their persisted lifecycle states. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/installations",
+      "tag": "Installation requests",
+      "summary": "Create a provisional installation request",
+      "description": "Accepts contact and location data without creating an IAM account. Anonymous callers cannot reference private property or meter targets. Authentication: no user JWT required; the operation-specific token or checkout secret still applies when specified.",
+      "success": 201,
+      "security": ""
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/installations/{id}",
+      "tag": "Installation requests",
+      "summary": "Get an authorized installation",
+      "description": "Allows the principal owner or SUPERADMIN to read lifecycle, appointment and assigned-installer details. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/installations/{id}/target",
+      "tag": "Installation requests",
+      "summary": "Bind a paid request to its supply point",
+      "description": "Requires principal ownership, verified payment, an active owned target and the current request version. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/installations/{id}/appointment",
+      "tag": "Installation requests",
+      "summary": "Confirm an installation appointment",
+      "description": "Requires SUPERADMIN and the current version. Records a valid future appointment interval for assigned work. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/installations/{id}/assign",
+      "tag": "Installation requests",
+      "summary": "Assign an eligible installer",
+      "description": "Requires SUPERADMIN, a verified purchase, a linked target and an active accredited installer with availability. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/installations/{id}/reassign",
+      "tag": "Installation requests",
+      "summary": "Reassign an installation",
+      "description": "Requires SUPERADMIN, the current version and a reason before work starts. Preserves previous assignments. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/installations/{id}/status",
+      "tag": "Installation requests",
+      "summary": "Advance an installation state",
+      "description": "Requires SUPERADMIN. Applies only eligible start or completion transitions; completion conditions are still enforced. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/installations/{id}/complete",
+      "tag": "Installation requests",
+      "summary": "Complete an installation once",
+      "description": "Requires SUPERADMIN, the exact active device association, confirmed provisioning and fresh connectivity evidence. Replays preserve the completion date. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/installations/{id}/cancel",
+      "tag": "Installation requests",
+      "summary": "Cancel an unfinished installation",
+      "description": "Requires SUPERADMIN, the current version and a reason. Device revocation must be confirmed first when applicable. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/devices",
+      "tag": "Devices",
+      "summary": "List authorized devices",
+      "description": "Allows SUPERADMIN administration or authorized principal/delegated point-scoped lookup. Delegates must provide an allowed meter function. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/devices",
+      "tag": "Devices",
+      "summary": "Register a device for provisioning",
+      "description": "Requires SUPERADMIN and a matching installation, installer and supply point. Returns a one-time credential and a pending operation, not confirmed activation. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 202,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/devices/{id}/credentials/rotate",
+      "tag": "Devices",
+      "summary": "Request device credential rotation",
+      "description": "Requires SUPERADMIN. Returns the new credential once; broker confirmation is processed asynchronously. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 202,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/devices/{id}/credentials/revoke",
+      "tag": "Devices",
+      "summary": "Request device credential revocation",
+      "description": "Requires SUPERADMIN. Requests broker revocation and session disconnection; acceptance alone is not confirmation. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 202,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/devices/{id}/associations",
+      "tag": "Devices",
+      "summary": "Get device association history",
+      "description": "Requires SUPERADMIN. Returns preserved association versions without exposing device credentials. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/devices/{id}/associations",
+      "tag": "Devices",
+      "summary": "Request a device reassociation",
+      "description": "Requires SUPERADMIN, a valid owned target and association safeguards. Preserves previous versions and records any explicitly justified gap. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 202,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/operations/outbox",
+      "tag": "Synchronization",
+      "summary": "List synchronization operations",
+      "description": "Requires SUPERADMIN. Returns operational metadata without secrets, protected payloads or claim tokens. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/operations/outbox/{id}",
+      "tag": "Synchronization",
+      "summary": "Inspect a synchronization operation",
+      "description": "Requires SUPERADMIN. Returns the operation's state, attempts and non-sensitive diagnostics. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/operations/outbox/{id}/retry",
+      "tag": "Synchronization",
+      "summary": "Request an immediate synchronization retry",
+      "description": "Requires SUPERADMIN and eligible operation state. Retains the original operation identity and idempotency guarantees. Authentication: current IAM JWT; roles are USER and SUPERADMIN.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
+      "method": "POST",
+      "path": "/internal/v1/installations/payment-confirmations",
+      "tag": "Internal installation",
+      "summary": "Apply a verified installation payment",
+      "description": "Accepts trusted purchase evidence. Replays are idempotent; mismatched customers or purchase references are rejected. Authentication: private service credential; user JWTs are not accepted. Internal routes must remain outside public gateway routing.",
+      "success": 200,
+      "security": "serviceAuth"
+    },
+    {
+      "method": "GET",
+      "path": "/internal/v1/installations/{id}/checkout-context",
+      "tag": "Internal installation",
+      "summary": "Get provisional checkout context",
+      "description": "Returns installation status and contact email for Billing validation using local data only. Authentication: private service credential; user JWTs are not accepted. Internal routes must remain outside public gateway routing.",
+      "success": 200,
+      "security": "serviceAuth"
+    },
+    {
+      "method": "GET",
+      "path": "/internal/v1/meters/{id}/ownership",
+      "tag": "Internal installation",
+      "summary": "Get current meter ownership",
+      "description": "Returns the principal owner and active property/supply-point scope without calling IAM. Authentication: private service credential; user JWTs are not accepted. Internal routes must remain outside public gateway routing.",
+      "success": 200,
+      "security": "serviceAuth"
+    },
+    {
+      "method": "GET",
+      "path": "/internal/v1/devices/{id}/authorization",
+      "tag": "Internal installation",
+      "summary": "Check a current device association",
+      "description": "Checks the requested association version, provisioning and current owned scope. This is not a historical-reading authorization API. Authentication: private service credential; user JWTs are not accepted. Internal routes must remain outside public gateway routing.",
+      "success": 200,
+      "security": "serviceAuth"
+    }
+  ]
+}

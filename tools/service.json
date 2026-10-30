@@ -1,0 +1,5 @@
+{
+  "service": "smartgn-installation-device-management",
+  "postgres": "postgres:17.6",
+  "package": "com.ventrax.installation"
+}

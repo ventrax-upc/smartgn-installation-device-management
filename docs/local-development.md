@@ -1,26 +1,17 @@
 # Local development
 
-Run `scripts/start-local.ps1` from this checkout. It uses `compose.integration.yml`, preserves existing local configuration and volumes, and requires an adjacent IAM checkout (or `IAM_REPO_PATH`). Do not run the standalone IAM composition simultaneously on the same published ports.
+Run `./scripts/start-local.ps1 -Integrated` from any sibling service. The identical integrated composition starts IAM, Installation, Payments and Support, each with its independent database. Configuration comes from `../smartgn-payments-billing/.env`; preparation generates only missing keys and preserves existing volumes. Integrated ports are IAM 18080, Installation 18081, Payments 28083 and Support 8082. The broker is on 1885; activation/recovery delivery uses a protected local fixture on 18091.
 
-`scripts/prepare-local.ps1` generates random secrets once in ignored `.local/integration.env` and writes the ignored EMQX bootstrap key file. Keep that configuration with its persistent volumes: changing encryption keys does not decrypt older queued credentials or messages. No script resets stored account passwords.
+Standalone mode uses `compose.yml` and the service's ignored `.env`. Match JWT/service credentials and configure dependency URLs when connecting standalone deployments. Changes to an existing database password require a deliberate database credential update; generating a new environment value does not update stored PostgreSQL credentials.
 
-The two PostgreSQL servers have different credentials, volumes and service DNS names. IAM uses PostgreSQL 18 and Installation PostgreSQL 17.6. The default `compose.yml` includes the same integration composition; explicit commands should pass `--env-file .local/integration.env`.
+Use `scripts/test.ps1` for isolated verification, `scripts/smoke-local.ps1` for integrated acceptance, and `tools/verify-layout.py` for the common repository contract. Logs and Maven output remain outside docs. OpenAPI exports describe the running implementation; set OPENAPI_URL when exporting from a non-default port.
 
-```powershell
-docker compose --env-file .local/integration.env -f compose.integration.yml ps
-docker compose --env-file .local/integration.env -f compose.integration.yml up -d
-./scripts/test.ps1
-./scripts/smoke-local.ps1
-```
+Applied Flyway migrations are immutable. Back up an existing database before introducing migrations and validate the schema before any explicit baseline. Do not reset application volumes to make a migration pass. Fixtures are development tools, not productive integrations.
 
-Test runners create their own temporary database containers and clean up only those containers. Installation integration tests use uniquely generated schemas; IAM persistence tests likewise use generated schemas in their private verification database. Existing application databases are not used by test runners.
+## Provisioning fixtures
 
-## Database operation
+`compose.fixtures.yml` retains the independent IAM/Installation/EMQX/Telemetry development composition. Existing `.local/integration.env` belongs only to that fixture mode. `scripts/start-fixtures.ps1` starts it and `python tools/smoke-service.py` exercises physical-device contract simulations. It is separate from the four-service integrated stack and never implies real device or Telemetry availability.
 
-Flyway initializes an empty database at startup. A single initial SQL schema defines the database at startup. Keep persistent Docker volumes and encryption keys together. Installer eligibility requires an accreditation code, enabled status and explicit availability. Active assignment reservations enforce installer and request uniqueness.
+After the integrated acceptance run, `python tools/verify-mqtt.py` replays committed Support completion events through authenticated MQTT, checks that no duplicate coverage or monetary conflicts appear, and restores the default HTTP-only Support configuration. It retains all application volumes and existing delivery receipts.
 
-Installation uses the `installation` PostgreSQL schema. This is a storage identifier; the application name and Java namespace are Installation & Device Management. Database access is private to each service.
-
-JWTs require USER or SUPERADMIN, the configured issuer and audience, an active account and the current session version. Clients use POST assignment/completion and the device payload documented in OpenAPI.
-
-Local services communicate over HTTP/MQTT inside an isolated Docker network with loopback host bindings. Production deployment requires separate transport security and external provider configuration.
+Set `OPENAPI_URL` to the running service's `/v3/api-docs` URL and run `python tools/verify-openapi.py` to verify the API title, version, operation inventory, groups, summaries, descriptions, authentication and success responses against `src/main/resources/openapi/operations.json`. Use `python tools/export-openapi.py` with the same variable to refresh `docs/openapi.json`.
