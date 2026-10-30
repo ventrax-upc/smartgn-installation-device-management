@@ -1,3 +1,33 @@
-# Default entry point. Generate .local/integration.env with scripts/prepare-local.ps1.
-include:
-  - compose.integration.yml
+name: smartgn-installation
+services:
+  db:
+    image: postgres:17.6
+    environment:
+      POSTGRES_DB: installation_db
+      POSTGRES_USER: smartgn_installation
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+    ports: ["127.0.0.1:5433:5432"]
+    volumes: [installation-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U smartgn_installation -d installation_db"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  installation:
+    build: .
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/installation_db
+      DB_USERNAME: smartgn_installation
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
+      DEVICE_CREDENTIAL_KEY: ${DEVICE_CREDENTIAL_KEY}
+      EMQX_PASSWORD: ${EMQX_PASSWORD:-}
+      SMARTGN_IAM_BASE_URL: ${IAM_BASE_URL:-http://host.docker.internal:8080}
+      SMARTGN_EVENTS_SINK_URL: ${EVENTS_SINK_URL:-http://host.docker.internal:8083/internal/v1/events}
+      SMARTGN_EVENTS_SINK_TOKEN: ${INTERNAL_SERVICE_TOKEN}
+    ports: ["127.0.0.1:8081:8081"]
+    depends_on:
+      db: {condition: service_healthy}
+volumes:
+  installation-data:
