@@ -63,6 +63,10 @@ services:
       DEVICE_CREDENTIAL_KEY: ${DEVICE_CREDENTIAL_KEY}
       INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
       EMQX_PASSWORD: ${MQTT_PASSWORD}
+      EMQX_API_URL: http://device-broker:18083/api/v5
+      EMQX_API_KEY: ${DEVICE_BROKER_API_KEY}
+      EMQX_API_SECRET: ${DEVICE_BROKER_API_SECRET}
+      TELEMETRY_BASE_URL: http://telemetry-fixture:8090
       SMARTGN_IAM_BASE_URL: http://iam:8080
       SMARTGN_EVENTS_SINK_URL: http://billing:8083/internal/v1/events
       SMARTGN_EVENTS_SINK_TOKEN: ${INTERNAL_SERVICE_TOKEN}
@@ -106,6 +110,53 @@ services:
     volumes: [support-integration-photos:/data]
     depends_on:
       support-db: {condition: service_healthy}
+  api-gateway:
+    build: ../smartgn-api-gateway
+    env_file: ../smartgn-api-gateway/.env
+    environment:
+      API_PORT: 8000
+      JWT_SECRET: ${JWT_SECRET}
+      IAM_URL: http://iam:8080
+      INSTALLATION_URL: http://installation:8081
+      SUPPORT_URL: http://support:8082
+      BILLING_URL: http://billing:8083
+    ports: ["127.0.0.1:8000:8000"]
+    init: true
+    depends_on:
+      iam: {condition: service_healthy}
+      installation: {condition: service_healthy}
+      support: {condition: service_healthy}
+      billing: {condition: service_healthy}
+  device-broker:
+    image: emqx/emqx:5.8.8
+    environment:
+      EMQX_DASHBOARD__DEFAULT_USERNAME: admin
+      EMQX_DASHBOARD__DEFAULT_PASSWORD: ${MQTT_PASSWORD}
+      EMQX_API_KEY__BOOTSTRAP_FILE: /opt/emqx/etc/bootstrap-api-keys
+      EMQX_AUTHORIZATION__NO_MATCH: deny
+      EMQX_AUTHORIZATION__CACHE__ENABLE: "false"
+      EMQX_AUTHORIZATION__SOURCES: '[{type = built_in_database, enable = true}]'
+      EMQX_AUTHENTICATION: '[{mechanism = password_based, backend = built_in_database, user_id_type = username}]'
+    volumes:
+      - ../smartgn-payments-billing/.local/device-broker/bootstrap-api-keys:/opt/emqx/etc/bootstrap-api-keys:ro
+      - device-broker-data:/opt/emqx/data
+    ports: ["127.0.0.1:1886:1883", "127.0.0.1:18086:18083"]
+    healthcheck:
+      test: [CMD-SHELL, '/opt/emqx/bin/emqx ctl status']
+      interval: 10s
+      timeout: 10s
+      start_period: 30s
+      retries: 30
+  telemetry-fixture:
+    image: python:3.13-slim
+    command: [python, /tools/local-telemetry-simulator.py]
+    environment:
+      TELEMETRY_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
+      SIMULATOR_ADMIN_TOKEN: ${FIXTURE_ADMIN_TOKEN}
+      SIMULATOR_DB: /data/telemetry.sqlite
+      PORT: "8090"
+    volumes: ["../smartgn-installation-device-management/tools:/tools:ro", "telemetry-fixture-data:/data"]
+    ports: ["127.0.0.1:18090:8090"]
 volumes:
   billing-data:
   mqtt-data:
@@ -115,3 +166,5 @@ volumes:
   delivery-data:
   support-integration-db:
   support-integration-photos:
+  device-broker-data:
+  telemetry-fixture-data:

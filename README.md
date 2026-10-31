@@ -18,6 +18,7 @@ The shared integrated composition uses `../smartgn-payments-billing/.env` as its
 
 | Service | Integrated address |
 | --- | --- |
+| API Gateway | http://localhost:8000/swagger-ui/index.html |
 | IAM | http://localhost:18080/swagger-ui.html |
 | Installation | http://localhost:18081/swagger-ui.html |
 | Payments | http://localhost:28083/swagger-ui.html |
@@ -38,7 +39,7 @@ The shared integrated composition uses `../smartgn-payments-billing/.env` as its
 
 `./scripts/test.ps1` runs Maven verify with disposable PostgreSQL and authenticated MQTT fixtures. `-SkipDatabase` is a reduced check and does not prove persistence or broker integration. `./mvnw.cmd verify` requires host JDK 25 and dedicated test database settings for persistence tests. Test resources are isolated from application volumes.
 
-`./scripts/smoke-local.ps1` checks the four-service identity/ownership/ticket/visit/coverage workflow. Purchase provisioning and notification delivery use explicitly labeled local fixtures; merchant, tax and physical-device integrations retain their own readiness requirements.
+`./scripts/smoke-local.ps1` checks the five-service identity/ownership/ticket/visit/coverage workflow. Purchase provisioning and notification delivery use explicitly labeled local fixtures; merchant, tax and physical-device integrations retain their own readiness requirements.
 
 Use `python tools/verify-layout.py` to check package paths and the shared repository structure. Use `./scripts/export-openapi.ps1` to refresh the export from a running service; set OPENAPI_URL to an integrated address when necessary. Never commit `.env`, `.local`, credentials or generated build output.
 
@@ -49,3 +50,5 @@ Use `python tools/verify-layout.py` to check package paths and the shared reposi
 - [Local development](docs/local-development.md)
 - [Service overview](docs/service-overview.md)
 - [OpenAPI](docs/openapi.json)
+
+Public clients can use the API Gateway on port 8000. Integrated startup prepares its ignored environment with the shared IAM key. `scripts/smoke-local.ps1` runs Billing and Support acceptance through the Gateway; internal provisioning and provider fixtures remain direct, authenticated verification calls.
