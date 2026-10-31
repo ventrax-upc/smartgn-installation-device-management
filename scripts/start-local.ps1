@@ -4,6 +4,7 @@ $repoRoot=Split-Path -Parent $PSScriptRoot
 Set-Location -LiteralPath $repoRoot
 if($Integrated){
  & ../smartgn-payments-billing/scripts/prepare-local.ps1
+ & ../smartgn-api-gateway/scripts/prepare-local.ps1
  $arguments=@('compose','--env-file','../smartgn-payments-billing/.env','-f','compose.integration.yml','up','-d','--wait')
 }else{
  & ./scripts/prepare-local.ps1

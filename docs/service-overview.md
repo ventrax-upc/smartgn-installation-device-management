@@ -2,7 +2,7 @@
 
 Installation & Device Management provides properties, supply points, external installer records, provisional and paid installation requests, assignment and appointment history, device associations and confirmed provisioning. IAM supplies current identity and delegated permission checks.
 
-The local Docker environment uses independent PostgreSQL databases and an authenticated EMQX broker. The bundled composition provides labeled development doubles for Billing, Notifications and Telemetry. The integrated Payments environment connects the actual Billing service through its authenticated HTTP contracts.
+The integrated Docker composition connects the real IAM, Installation, Support and Billing services through the API Gateway, with independent PostgreSQL databases and an authenticated EMQX device broker. Notification delivery and Telemetry metadata use labeled local fixtures. The separate compose.fixtures.yml retains its isolated fixture environment, including a Billing double.
 
 - [Architecture](architecture.md)
 - [API contracts](contracts.md)
