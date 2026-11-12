@@ -1,0 +1,21 @@
+{
+  "service": "installation",
+  "version": 1,
+  "records": [
+    {
+      "type": "property",
+      "alias": "demo-property-primary",
+      "owner": "demo-account-pro",
+      "name": "Demo Pro property",
+      "address": "Calle Demo 101, Lima",
+      "propertyType": "HOUSE"
+    },
+    {
+      "type": "supplyPoint",
+      "alias": "demo-supply-point-primary",
+      "property": "demo-property-primary",
+      "serialNumber": "SP-DEMO-001",
+      "locationName": "Kitchen"
+    }
+  ]
+}

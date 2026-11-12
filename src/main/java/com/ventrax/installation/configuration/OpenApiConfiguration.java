@@ -165,6 +165,11 @@ public class OpenApiConfiguration {
                                                         operation
                                                                 .getResponses()
                                                                 .addApiResponse(status, success);
+                                                        if (method.name().equals("POST") && path.equals("/api/v1/installations")) {
+                                                            operation.getResponses().putIfAbsent(
+                                                                    "400", new ApiResponse().description(
+                                                                            "Required installation contact or address is missing or invalid."));
+                                                        }
                                                         if (!doc.security().isEmpty())
                                                             operation
                                                                     .getResponses()
