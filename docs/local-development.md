@@ -1,19 +1,15 @@
 # Local execution
 
-Run `./scripts/start-local.ps1 -Integrated` from any sibling repository to start API Gateway, IAM, Installation & Device Management, Support & Maintenance and Payments & Billing. The four domain services use independent PostgreSQL databases; the Gateway is stateless. The composition reads shared credentials from `../smartgn-payments-billing/.env` and Gateway settings from `../smartgn-api-gateway/.env`. Preparation creates missing values and preserves existing keys and volumes.
+Run `./scripts/start-local.ps1 -Integrated` to start all 11 backend services through the Gateway's integrated Compose. The stack uses one PostgreSQL instance with separate databases and roles, one EMQX broker, real Telemetry backed by InfluxDB, and Redis. The activation delivery and payment providers use local fixtures.
 
-| Application | Host port | Docker service port |
-|---|---:|---:|
-| API Gateway | 8000 | 8000 |
-| IAM | 18080 | 8080 |
-| Installation & Device Management | 18081 | 8081 |
-| Support & Maintenance | 8082 | 8082 |
-| Payments & Billing | 28083 | 8083 |
+The Gateway publishes HTTP on `127.0.0.1:8000`. Spring Boot Admin is available at `127.0.0.1:8089`. See the [integrated port table](../../smartgn-api-gateway/docs/integrated-local.md#access) for the individual Swagger UIs. Backend calls use service DNS inside Compose. Shared local credentials are generated under the Gateway repository's ignored `.local/integrated.env`.
 
-Standalone execution uses `./scripts/start-local.ps1`, `compose.yml` and this service's `.env`. Dependency URLs and service credentials must match the separately running services. Existing PostgreSQL volumes retain their database credentials; generating a new environment value does not change a stored database password.
+From the sibling `smartgn-api-gateway` repository, run `./scripts/seed-local.ps1` to load demo data and `./scripts/smoke-integrated.ps1` to check the integrated stack. The Gateway exposes `/health`, `/ready`, and public Swagger at `/swagger-ui/index.html`. Each Spring service exposes `/actuator/health` and `/v3/api-docs` on its service port. Its OpenAPI export is in `docs/openapi.json`.
 
-The integrated financial event broker listens on 1885. Device provisioning uses EMQX on MQTT 1886 and administration 18086. A labeled Telemetry fixture on 18090 supplies controlled device-contact and buffer evidence. A separate fixture on 18091 accepts activation/recovery messages. These fixtures are local adapters and do not implement the external provider or Telemetry bounded context.
+For standalone execution, run `./scripts/start-local.ps1` with this service's `.env`. Set the dependency URLs and credentials for the services it will contact.
 
-Each Java service exposes `/actuator/health`, `/v3/api-docs` and `/swagger-ui/index.html`. The Gateway exposes process liveness at `/health`, four-backend readiness at `/ready`, and public-only Swagger UI at `/swagger-ui/index.html`. Individual service OpenAPI exports are available in `docs/openapi.json`.
+Run this command from the Gateway repository to stop the integrated stack while preserving volumes.
 
-Stop the integrated stack with `docker compose --env-file ../smartgn-payments-billing/.env -f compose.integration.yml stop`. Stopping containers retains database and photograph volumes.
+```powershell
+docker compose --env-file .local/integrated.env -f compose.integration.yml down
+```

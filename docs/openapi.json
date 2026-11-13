@@ -1038,6 +1038,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Required installation contact or address is missing or invalid."
           }
         },
         "security": []

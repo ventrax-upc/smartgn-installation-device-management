@@ -1,6 +1,18 @@
 spring:
   application:
     name: smartgn-installation-device-management
+  config:
+    import: ${SPRING_CONFIG_IMPORT:optional:configserver:${SMARTGN_CONFIG_URL:http://config:8088}}
+  boot:
+    admin:
+      client:
+        url: ${SMARTGN_ADMIN_URL:http://admin:8089}
+        username: ${SMARTGN_ADMIN_USERNAME:smartgn}
+        password: ${SMARTGN_ADMIN_PASSWORD:}
+        instance:
+          service-url: ${ADMIN_SERVICE_URL:http://installation:8081}
+          management-url: ${ADMIN_MANAGEMENT_URL:http://installation:8081/actuator}
+          health-url: ${ADMIN_HEALTH_URL:http://installation:8081/actuator/health}
   datasource:
     url: ${DB_URL:${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5433/installation_db}}
     username: ${DB_USERNAME:${SPRING_DATASOURCE_USERNAME:smartgn_installation}}
