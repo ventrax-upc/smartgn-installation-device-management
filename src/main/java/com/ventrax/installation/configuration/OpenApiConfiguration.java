@@ -165,10 +165,28 @@ public class OpenApiConfiguration {
                                                         operation
                                                                 .getResponses()
                                                                 .addApiResponse(status, success);
-                                                        if (method.name().equals("POST") && path.equals("/api/v1/installations")) {
+                                                        if (method.name().equals("POST")
+                                                                && (path.equals("/api/v1/installations")
+                                                                    || path.equals("/api/v1/installations/verified")
+                                                                    || path.startsWith("/api/v1/installations/email-verifications"))) {
                                                             operation.getResponses().putIfAbsent(
                                                                     "400", new ApiResponse().description(
-                                                                            "Required installation contact or address is missing or invalid."));
+                                                                            "Required request fields are missing or invalid."));
+                                                        }
+                                                        if (path.equals("/api/v1/installations/verified")
+                                                                || (method.name().equals("POST") && path.equals("/api/v1/installations"))) {
+                                                            operation.getResponses().putIfAbsent("403",
+                                                                    new ApiResponse().description("A valid email verification is required."));
+                                                        }
+                                                        if (path.equals("/api/v1/installations/email-verifications")) {
+                                                            operation.getResponses().putIfAbsent("429",
+                                                                    new ApiResponse().description("Verification code request limit exceeded."));
+                                                            operation.getResponses().putIfAbsent("503",
+                                                                    new ApiResponse().description("Email delivery unavailable."));
+                                                        }
+                                                        if (path.equals("/api/v1/installations/email-verifications/confirm")) {
+                                                            operation.getResponses().putIfAbsent("422",
+                                                                    new ApiResponse().description("Invalid or expired verification code."));
                                                         }
                                                         if (!doc.security().isEmpty())
                                                             operation

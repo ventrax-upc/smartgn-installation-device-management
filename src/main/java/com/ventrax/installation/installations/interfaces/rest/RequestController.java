@@ -20,14 +20,20 @@ import java.util.*;
 @Tag(name = "Installation requests")
 public class RequestController {
     private final InstallationRequests operations;
+    private final CheckoutEmail verification;
+    private final boolean requireVerification;
 
     private final org.springframework.jdbc.core.JdbcTemplate checkoutDb;
 
     public RequestController(
             InstallationRequests operations,
-            org.springframework.jdbc.core.JdbcTemplate checkoutDb) {
+            org.springframework.jdbc.core.JdbcTemplate checkoutDb,
+            CheckoutEmail verification,
+            @org.springframework.beans.factory.annotation.Value("${smartgn.checkout-email.require-verification}") boolean requireVerification) {
         this.operations = operations;
         this.checkoutDb = checkoutDb;
+        this.verification = verification;
+        this.requireVerification = requireVerification;
     }
 
     @io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "serviceAuth")
@@ -57,6 +63,25 @@ public class RequestController {
             UUID supplyPointId,
             @NotNull @Valid Contact contact,
             @NotBlank @Size(max = 500) String address) {}
+
+    public record VerifiedCreate(
+            @NotNull UUID challengeId,
+            @NotBlank @Size(min = 72, max = 72) String proof,
+            @NotNull @Valid Contact contact,
+            @NotBlank @Size(max = 500) String address) {}
+
+    public record CreatedRequest(UUID id) {}
+
+    @io.swagger.v3.oas.annotations.security.SecurityRequirements
+    @PostMapping("/api/v1/installations/verified")
+    @ResponseStatus(HttpStatus.CREATED)
+    @org.springframework.transaction.annotation.Transactional
+    public CreatedRequest createVerified(
+            @Valid @RequestBody VerifiedCreate r, jakarta.servlet.http.HttpServletRequest request) {
+        rate(request);
+        return new CreatedRequest(verification.installation(r.challengeId(), r.proof(), r.contact().email(),
+                () -> createRequest(null, new Create(null, null, r.contact(), r.address())).id()));
+    }
 
     public record Payment(
             @NotNull UUID eventId,
@@ -109,6 +134,14 @@ public class RequestController {
             @Valid @RequestBody Create r,
             jakarta.servlet.http.HttpServletRequest request) {
         rate(request);
+        if (actor == null && (requireVerification || verification.requiresVerification())) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    HttpStatus.FORBIDDEN, "Email verification required");
+        }
+        return createRequest(actor, r);
+    }
+
+    private Installation createRequest(Actor actor, Create r) {
         return operations.create(
                 actor,
                 new InstallationRequests.Create(

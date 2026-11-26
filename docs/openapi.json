@@ -1040,7 +1040,10 @@
             }
           },
           "400": {
-            "description": "Required installation contact or address is missing or invalid."
+            "description": "Required request fields are missing or invalid."
+          },
+          "403": {
+            "description": "A valid email verification is required."
           }
         },
         "security": []
@@ -2413,6 +2416,126 @@
           }
         ]
       }
+    },
+    "/api/v1/installations/verified": {
+      "post": {
+        "tags": [
+          "Installation requests"
+        ],
+        "summary": "Create a verified installation request",
+        "description": "Creates one provisional request for the verified email. Replaying the proof returns the same request.",
+        "operationId": "createVerified",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifiedCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Resource created.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedRequest"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Required request fields are missing or invalid."
+          },
+          "403": {
+            "description": "A valid email verification is required."
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/installations/email-verifications": {
+      "post": {
+        "tags": [
+          "Installation requests"
+        ],
+        "summary": "Send a checkout verification code",
+        "description": "Delivers a six-digit code and returns only a challenge identifier.",
+        "operationId": "send",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Send"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Request accepted; asynchronous work or delivery may still be pending.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Challenge"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Required request fields are missing or invalid."
+          },
+          "429": {
+            "description": "Verification code request limit exceeded."
+          },
+          "503": {
+            "description": "Email delivery unavailable."
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/v1/installations/email-verifications/confirm": {
+      "post": {
+        "tags": [
+          "Installation requests"
+        ],
+        "summary": "Verify a checkout email",
+        "description": "Validates the code and returns a short-lived proof bound to the verified email.",
+        "operationId": "confirm_1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Confirm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Proof"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Required request fields are missing or invalid."
+          },
+          "422": {
+            "description": "Invalid or expired verification code."
+          }
+        },
+        "security": []
+      }
     }
   },
   "components": {
@@ -3190,6 +3313,96 @@
           },
           "confirmed": {
             "type": "boolean"
+          }
+        }
+      },
+      "VerifiedCreate": {
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "proof": {
+            "type": "string",
+            "maxLength": 72,
+            "minLength": 72
+          },
+          "contact": {
+            "$ref": "#/components/schemas/Contact"
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "address",
+          "challengeId",
+          "contact",
+          "proof"
+        ]
+      },
+      "CreatedRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "Send": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "Challenge": {
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "Confirm": {
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "[0-9]{6}"
+          }
+        },
+        "required": [
+          "challengeId",
+          "code"
+        ]
+      },
+      "Proof": {
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "proof": {
+            "type": "string"
           }
         }
       }

@@ -353,6 +353,33 @@
       "description": "Checks the requested association version, provisioning and current owned scope. This is not a historical-reading authorization API. Authentication: private service credential; user JWTs are not accepted. Internal routes must remain outside public gateway routing.",
       "success": 200,
       "security": "serviceAuth"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/installations/email-verifications",
+      "tag": "Installation requests",
+      "summary": "Send a checkout verification code",
+      "description": "Delivers a six-digit code and returns only a challenge identifier.",
+      "success": 202,
+      "security": ""
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/installations/email-verifications/confirm",
+      "tag": "Installation requests",
+      "summary": "Verify a checkout email",
+      "description": "Validates the code and returns a short-lived proof bound to the verified email.",
+      "success": 200,
+      "security": ""
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/installations/verified",
+      "tag": "Installation requests",
+      "summary": "Create a verified installation request",
+      "description": "Creates one provisional request for the verified email. Replaying the proof returns the same request.",
+      "success": 201,
+      "security": ""
     }
   ]
 }

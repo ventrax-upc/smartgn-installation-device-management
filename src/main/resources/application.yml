@@ -42,6 +42,12 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 smartgn:
+  checkout-email:
+    mode: ${CHECKOUT_EMAIL_MODE:disabled}
+    fixture-url: ${CHECKOUT_EMAIL_FIXTURE_URL:}
+    resend-key: ${RESEND_API_KEY:}
+    from: ${RESEND_FROM_EMAIL:}
+    require-verification: ${REQUIRE_CHECKOUT_EMAIL_VERIFICATION:false}
   security:
     jwt-secret: ${JWT_SECRET}
     jwt-issuer: ${JWT_ISSUER:smartgn-iam-service}

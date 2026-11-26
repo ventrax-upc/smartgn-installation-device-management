@@ -226,12 +226,12 @@ class JdbcInstallationStoreDatabaseTest {
     }
 
     @Test
-    void initialSchemaContainsOnlyInstallationContextTables() {
+    void migratedSchemaContainsOnlyInstallationContextTables() {
         assertEquals(
-                "1",
-                jdbc.queryForObject(
+                List.of("1", "2"),
+                jdbc.queryForList(
                         "SELECT version FROM flyway_schema_history WHERE success AND version IS NOT"
-                                + " NULL",
+                                + " NULL ORDER BY installed_rank",
                         String.class));
         assertEquals(
                 0,
@@ -242,11 +242,12 @@ class JdbcInstallationStoreDatabaseTest {
                         Integer.class,
                         schema));
         assertEquals(
-                3,
+                4,
                 jdbc.queryForObject(
                         "SELECT count(*) FROM information_schema.tables WHERE table_schema=? AND"
                             + " table_name IN"
-                            + " ('installation_requests','installer_assignments','device_provisionings')",
+                                + " ('installation_requests','installer_assignments',"
+                                + " 'device_provisionings','checkout_email_verifications')",
                         Integer.class,
                         schema));
         assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM installations", Integer.class));

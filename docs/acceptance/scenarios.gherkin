@@ -1,0 +1,44 @@
+# Source: Ventrax AV4 report. Acceptance specification; execution is verified separately.
+Feature: Installation and device management
+
+  Scenario: Register a property for the account holder
+    Given an authenticated primary user has a valid account
+    When the user submits valid property details
+    Then Installation associates the new property with that account
+
+  Scenario: Reject a property belonging to another account
+    Given the user owns property A and not property B
+    When the user requests property B
+    Then Installation rejects access without exposing property B
+
+  Scenario: Register a supply point in an authorized property
+    Given the primary user owns an active property
+    When the user registers a valid supply point
+    Then Installation links the point to the authorized property
+
+  Scenario: Restrict installer management to SuperAdmin
+    Given an authenticated primary user does not have SuperAdmin role
+    When the user requests installer administration
+    Then Installation denies the operation
+
+  Scenario: Assign an available installer automatically
+    Given a confirmed installation request and an eligible available installer
+    When the assignment policy runs
+    Then Installation records the assigned installer and the updated request state
+
+  Scenario: Reject a duplicate device identifier
+    Given a device identifier is already registered
+    When SuperAdmin registers another device with the same identifier
+    Then Installation rejects the duplicate device
+
+  Scenario: Complete installation only with a valid associated device
+    Given the installation is in progress
+    And its device is associated with the correct supply point
+    And device provisioning has been confirmed
+    When SuperAdmin completes the installation
+    Then Installation records the completion once
+
+  Scenario: Deny access to a meter with a revoked grant
+    Given a subuser has a revoked permission for meter A
+    When the subuser requests that operation on meter A
+    Then Installation rejects access without altering permissions for other meters
