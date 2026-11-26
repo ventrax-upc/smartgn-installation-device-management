@@ -26,6 +26,10 @@ services:
       SMARTGN_IAM_BASE_URL: ${IAM_BASE_URL:-http://host.docker.internal:8080}
       SMARTGN_EVENTS_SINK_URL: ${EVENTS_SINK_URL:-http://host.docker.internal:8083/internal/v1/events}
       SMARTGN_EVENTS_SINK_TOKEN: ${INTERNAL_SERVICE_TOKEN}
+      CHECKOUT_EMAIL_MODE: ${CHECKOUT_EMAIL_MODE:-disabled}
+      CHECKOUT_EMAIL_FIXTURE_URL: ${CHECKOUT_EMAIL_FIXTURE_URL:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM_EMAIL: "${RESEND_FROM_EMAIL:-${APP_PASSWORD_RESET_FROM_EMAIL:-}}"
     ports: ["127.0.0.1:8081:8081"]
     depends_on:
       db: {condition: service_healthy}

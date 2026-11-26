@@ -74,7 +74,10 @@ public class SecurityConfiguration {
                                         .permitAll()
                                         .requestMatchers(
                                                 org.springframework.http.HttpMethod.POST,
-                                                "/api/v1/installations")
+                                                "/api/v1/installations",
+                                                "/api/v1/installations/verified",
+                                                "/api/v1/installations/email-verifications",
+                                                "/api/v1/installations/email-verifications/confirm")
                                         .permitAll()
                                         .requestMatchers("/api/v1/**", "/internal/v1/**")
                                         .authenticated()

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
 
@@ -89,6 +90,13 @@ public class ApiExceptionHandler {
     ResponseEntity<ProblemDetail> integrity(Exception ex, HttpServletRequest req) {
         return error(
                 409, "INTEGRITY_CONFLICT", "The operation conflicts with existing resources", req);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    ResponseEntity<ProblemDetail> status(ResponseStatusException ex, HttpServletRequest req) {
+        HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
+        return error(status.value(), status.name(),
+                ex.getReason() == null ? status.getReasonPhrase() : ex.getReason(), req);
     }
 
     @ExceptionHandler(Exception.class)

@@ -8,6 +8,8 @@ Manages installation requests, properties, supply points and installers. Provisi
 
 ## Run locally
 
+The [integrated startup guide](https://github.com/ventrax-upc/smartgn-api-gateway/blob/develop/README.md#start-all-13-repositories-locally) covers all 13 repositories. The commands below describe this component.
+
 Requirements are Docker Desktop with the Linux engine and PowerShell 7. Keep the SmartGN repositories as siblings for the integrated stack.
 
 ```powershell
@@ -51,6 +53,10 @@ Run the integrated smoke from the Gateway repository to verify cross-service wor
 - [Contracts](docs/contracts.md)
 - [OpenAPI export](docs/openapi.json)
 - [Service overview](docs/service-overview.md)
+
+## Acceptance scenarios
+
+See the [Gherkin acceptance scenarios](docs/acceptance/scenarios.gherkin). These are acceptance specifications. Use the verification commands above to run the automated checks.
 
 ## License
 
