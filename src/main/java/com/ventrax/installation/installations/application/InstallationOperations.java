@@ -237,7 +237,8 @@ public final class InstallationOperations {
                     store.saveInstallation(after, before.version());
                     if (target == InstallationStatus.COMPLETED) {
                         store.releaseAssignment(id);
-                        store.publish(
+                        if (!store.finishCorrectiveReview(id, after.completedAt())) {
+                            store.publish(
                                 "InstallationCompleted",
                                 id,
                                 "{\"accountId\":\""
@@ -247,6 +248,7 @@ public final class InstallationOperations {
                                         + "\",\"completedAt\":\""
                                         + after.completedAt()
                                         + "\"}");
+                        }
                     }
                     audit(
                             actor,
@@ -256,6 +258,39 @@ public final class InstallationOperations {
                             "Administrative installation transition");
                     return after;
                 });
+    }
+
+    public Installation requestCorrectiveReview(
+            Actor actor, UUID id, UUID installerId, long version, String reason, UUID correlationId) {
+        actor.requireRole(Role.SUPERADMIN);
+        reason(reason);
+        if (reason.trim().length() > 500)
+            throw new DomainException("INVALID_REQUEST", "Corrective review reason exceeds 500 characters");
+        return transactions.run(() -> {
+            Installation before = store.lockInstallation(id).orElseThrow(() -> missing("Installation"));
+            if (before.version() != version)
+                throw new DomainException("CONFLICT", "Installation changed; reload before corrective review");
+            if (store.correctiveReviewActive(id))
+                throw new DomainException("CONFLICT", "A corrective review is already active");
+            if (before.status() != InstallationStatus.IN_PROGRESS && before.status() != InstallationStatus.COMPLETED)
+                throw new DomainException("INVALID_STATE", "Corrective review requires started or completed work");
+            if (installerId.equals(before.installerId()) || store.correctiveReviewExcludes(id, installerId))
+                throw new DomainException("INVALID_STATE", "Corrective review requires a different installer");
+            Installer installer = store.lockInstaller(installerId).orElseThrow(() -> missing("Installer"));
+            if (!installer.enabled() || !installer.available()
+                    || installer.accreditationCode() == null || installer.accreditationCode().isBlank()
+                    || store.installerBusy(installerId))
+                throw new DomainException("INVALID_STATE", "Installer is not eligible for corrective review");
+            store.beginCorrectiveReview(id, before.installerId(), installerId, before.status(),
+                    before.completedAt(), reason.trim());
+            store.assignment(id, installerId);
+            Installation after = new Installation(before.id(), before.accountId(), before.propertyId(),
+                    before.pointId(), installerId, InstallationStatus.ASSIGNED, before.deviceId(),
+                    before.createdAt(), null, before.version() + 1);
+            store.saveInstallation(after, before.version());
+            audit(actor, "CORRECTIVE_REVIEW", id, correlationId, reason.trim());
+            return after;
+        });
     }
 
     public Installation reassign(
@@ -285,6 +320,8 @@ public final class InstallationOperations {
                             || installer.accreditationCode() == null
                             || installer.accreditationCode().isBlank())
                         throw new DomainException("INVALID_STATE", "Installer is not eligible");
+                    if (store.correctiveReviewExcludes(id, installerId))
+                        throw new DomainException("INVALID_STATE", "Corrective review requires a different installer");
                     if (installerId.equals(before.installerId())) return before;
                     if (store.installerBusy(installerId))
                         throw new DomainException("CONFLICT", "Installer already assigned");
@@ -337,6 +374,8 @@ public final class InstallationOperations {
                     if (before.version() != version)
                         throw new DomainException(
                                 "CONFLICT", "Installation changed; reload before cancelling");
+                    if (store.correctiveReviewActive(id))
+                        throw new DomainException("INVALID_STATE", "Resolve the active corrective review first");
                     if (before.status() == InstallationStatus.COMPLETED)
                         throw new DomainException(
                                 "INVALID_STATE", "A completed installation cannot be cancelled");

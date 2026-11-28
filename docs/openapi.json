@@ -2536,6 +2536,61 @@
         },
         "security": []
       }
+    },
+    "/api/v1/installations/{id}/corrective-review": {
+      "post": {
+        "tags": [
+          "Installation requests"
+        ],
+        "summary": "Coordinate a corrective installation review",
+        "description": "Requires SUPERADMIN, current version and a reason for started or completed work. Reserves a different accredited installer and preserves earlier intervention history.",
+        "operationId": "correctiveReview",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Resource UUID. Possession of an identifier does not replace authorization.",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectiveReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Operation completed successfully.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/Installation"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, expired, revoked or invalid IAM session."
+          },
+          "403": {
+            "description": "The current account does not have the required role, ownership or meter/function permission."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -3026,6 +3081,30 @@
           "contact"
         ]
       },
+      "CorrectiveReviewRequest": {
+        "type": "object",
+        "properties": {
+          "installerId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "installerId",
+          "reason",
+          "version"
+        ]
+      },
       "CancelInstallation": {
         "type": "object",
         "properties": {
@@ -3056,6 +3135,96 @@
         "required": [
           "installerId"
         ]
+      },
+      "VerifiedCreate": {
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "proof": {
+            "type": "string",
+            "maxLength": 72,
+            "minLength": 72
+          },
+          "contact": {
+            "$ref": "#/components/schemas/Contact"
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "address",
+          "challengeId",
+          "contact",
+          "proof"
+        ]
+      },
+      "CreatedRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "Send": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 254,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "Challenge": {
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "Confirm": {
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "[0-9]{6}"
+          }
+        },
+        "required": [
+          "challengeId",
+          "code"
+        ]
+      },
+      "Proof": {
+        "type": "object",
+        "properties": {
+          "challengeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "proof": {
+            "type": "string"
+          }
+        }
       },
       "RegisterDevice": {
         "type": "object",
@@ -3313,96 +3482,6 @@
           },
           "confirmed": {
             "type": "boolean"
-          }
-        }
-      },
-      "VerifiedCreate": {
-        "type": "object",
-        "properties": {
-          "challengeId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "proof": {
-            "type": "string",
-            "maxLength": 72,
-            "minLength": 72
-          },
-          "contact": {
-            "$ref": "#/components/schemas/Contact"
-          },
-          "address": {
-            "type": "string",
-            "maxLength": 500,
-            "minLength": 0
-          }
-        },
-        "required": [
-          "address",
-          "challengeId",
-          "contact",
-          "proof"
-        ]
-      },
-      "CreatedRequest": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid"
-          }
-        }
-      },
-      "Send": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string",
-            "format": "email",
-            "maxLength": 254,
-            "minLength": 0
-          }
-        },
-        "required": [
-          "email"
-        ]
-      },
-      "Challenge": {
-        "type": "object",
-        "properties": {
-          "challengeId": {
-            "type": "string",
-            "format": "uuid"
-          }
-        }
-      },
-      "Confirm": {
-        "type": "object",
-        "properties": {
-          "challengeId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "code": {
-            "type": "string",
-            "minLength": 1,
-            "pattern": "[0-9]{6}"
-          }
-        },
-        "required": [
-          "challengeId",
-          "code"
-        ]
-      },
-      "Proof": {
-        "type": "object",
-        "properties": {
-          "challengeId": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "proof": {
-            "type": "string"
           }
         }
       }

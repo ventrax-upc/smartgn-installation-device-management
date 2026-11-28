@@ -107,6 +107,15 @@ public interface InstallationStore {
 
     Optional<Installation> lockInstallation(UUID id);
 
+    void beginCorrectiveReview(UUID id, UUID previousInstaller, UUID installer,
+                               InstallationStatus priorStatus, Instant priorCompletion, String reason);
+
+    boolean correctiveReviewExcludes(UUID id, UUID installer);
+
+    boolean correctiveReviewActive(UUID id);
+
+    boolean finishCorrectiveReview(UUID id, Instant completedAt);
+
     void saveInstallation(Installation value, long expectedVersion);
 
     List<Installation> listInstallations();

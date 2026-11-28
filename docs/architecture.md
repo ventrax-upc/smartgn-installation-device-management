@@ -1,6 +1,6 @@
 # Architecture
 
-Installation & Device Management owns properties, supply points, external installer records, installation requests, devices and their operational histories. Its independent PostgreSQL database stores these resources; IAM supplies identity and delegated authorization, and Billing confirms purchases.
+Installation & Device Management owns properties, supply points, external installer records, installation requests, devices and their operational histories. Its independent PostgreSQL database stores these resources; IAM supplies identity and delegated authorization, and Payments confirms purchases.
 
 ## Service responsibilities
 
@@ -20,4 +20,4 @@ IAM verifies meter ownership through Installation's private read contract. That 
 
 Properties and supply points belong to the principal. Delegates can access granted meter functions without acquiring property administration rights. Automatic assignment uses a service audit marker rather than an IAM login account.
 
-The integrated composition connects real IAM, Installation, Support and Billing services through the Gateway. Notification delivery and Telemetry metadata use explicitly labeled local fixtures; they do not provide productive notification delivery or telemetry ingestion.
+The integrated composition connects real IAM, Installation, Support and Payments services through the Gateway. Notification delivery and Telemetry metadata use explicitly labeled local fixtures; they do not provide productive notification delivery or telemetry ingestion.

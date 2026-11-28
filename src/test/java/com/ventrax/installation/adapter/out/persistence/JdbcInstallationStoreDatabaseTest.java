@@ -228,7 +228,7 @@ class JdbcInstallationStoreDatabaseTest {
     @Test
     void migratedSchemaContainsOnlyInstallationContextTables() {
         assertEquals(
-                List.of("1", "2"),
+                List.of("1", "2", "3"),
                 jdbc.queryForList(
                         "SELECT version FROM flyway_schema_history WHERE success AND version IS NOT"
                                 + " NULL ORDER BY installed_rank",

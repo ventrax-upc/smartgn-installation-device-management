@@ -202,6 +202,15 @@
       "security": "bearerAuth"
     },
     {
+      "method": "POST",
+      "path": "/api/v1/installations/{id}/corrective-review",
+      "tag": "Installation requests",
+      "summary": "Coordinate a corrective installation review",
+      "description": "Requires SUPERADMIN, current version and a reason for started or completed work. Reserves a different accredited installer and preserves earlier intervention history.",
+      "success": 200,
+      "security": "bearerAuth"
+    },
+    {
       "method": "PATCH",
       "path": "/api/v1/installations/{id}/reassign",
       "tag": "Installation requests",

@@ -36,6 +36,11 @@ public final class InstallationController {
             @NotNull @PositiveOrZero Long version,
             @NotBlank @Size(max = 1000) String reason) {}
 
+    public record CorrectiveReviewRequest(
+            @NotNull UUID installerId,
+            @NotNull @PositiveOrZero Long version,
+            @NotBlank @Size(max = 500) String reason) {}
+
     public record CancelInstallation(
             @NotNull @PositiveOrZero Long version, @NotBlank @Size(max = 1000) String reason) {}
 
@@ -140,6 +145,18 @@ public final class InstallationController {
             @Valid @RequestBody ReassignInstaller request,
             @Parameter(hidden = true) @RequestAttribute("correlationId") UUID correlation) {
         return operations.reassign(
+                actor, id, request.installerId(), request.version(), request.reason(), correlation);
+    }
+
+    @PostMapping("/{id}/corrective-review")
+    @Operation(summary = "Coordinate a corrective installation review",
+            description = "SuperAdmin only. Assigns a different accredited installer and preserves prior work.")
+    public Installation correctiveReview(
+            @Parameter(hidden = true) @RequestAttribute("actor") Actor actor,
+            @PathVariable UUID id,
+            @Valid @RequestBody CorrectiveReviewRequest request,
+            @Parameter(hidden = true) @RequestAttribute("correlationId") UUID correlation) {
+        return operations.requestCorrectiveReview(
                 actor, id, request.installerId(), request.version(), request.reason(), correlation);
     }
 
