@@ -56,7 +56,7 @@ services:
     environment:
       FIXTURE_ADMIN_TOKEN: ${FIXTURE_ADMIN_TOKEN}
       NOTIFICATION_SERVICE_TOKEN: ${NOTIFICATION_SERVICE_TOKEN}
-      BILLING_FIXTURE_TOKEN: ${BILLING_FIXTURE_TOKEN}
+      PAYMENTS_FIXTURE_TOKEN: ${PAYMENTS_FIXTURE_TOKEN}
       EVENT_FIXTURE_TOKEN: ${EVENT_FIXTURE_TOKEN}
     volumes: ["./tools:/tools:ro", "fixture-data:/data"]
     ports: ["127.0.0.1:8091:8091"]
@@ -72,8 +72,8 @@ services:
       NOTIFICATION_DELIVERY_URL: http://future-services:8091/local-contracts/notifications
       NOTIFICATION_SERVICE_TOKEN: ${NOTIFICATION_SERVICE_TOKEN}
       INSTALLATION_BASE_URL: http://installation:8081
-      BILLING_FIXTURE_URL: http://future-services:8091
-      BILLING_FIXTURE_TOKEN: ${BILLING_FIXTURE_TOKEN}
+      PAYMENTS_FIXTURE_URL: http://future-services:8091
+      PAYMENTS_FIXTURE_TOKEN: ${PAYMENTS_FIXTURE_TOKEN}
       IDENTITY_EVENT_SINK_URL: http://future-services:8091/local-contracts/events
       IDENTITY_EVENT_SINK_TOKEN: ${EVENT_FIXTURE_TOKEN}
       SPRING_PROFILES_ACTIVE: local-bootstrap

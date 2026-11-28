@@ -610,6 +610,40 @@ public class JdbcInstallationStore implements InstallationStore {
         return find("installers", Installer.class, id, true);
     }
 
+    public void beginCorrectiveReview(UUID id, UUID previousInstaller, UUID installer,
+                                      InstallationStatus priorStatus, Instant priorCompletion, String reason) {
+        jdbc.update("""
+                INSERT INTO installation_corrective_reviews
+                    (review_id, installation_id, previous_installer_id, assigned_installer_id,
+                     previous_status, previous_completed_at, reason)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, UUID.randomUUID(), id, previousInstaller, installer, priorStatus.name(),
+                priorCompletion == null ? null : java.sql.Timestamp.from(priorCompletion), reason);
+    }
+
+    public boolean correctiveReviewActive(UUID id) {
+        return Boolean.TRUE.equals(jdbc.queryForObject("""
+                SELECT EXISTS(SELECT 1 FROM installation_corrective_reviews
+                 WHERE installation_id=? AND completed_at IS NULL)
+                """, Boolean.class, id));
+    }
+
+    public boolean correctiveReviewExcludes(UUID id, UUID installer) {
+        return Boolean.TRUE.equals(jdbc.queryForObject("""
+                SELECT EXISTS(SELECT 1 FROM installation_corrective_reviews
+                 WHERE installation_id=? AND previous_installer_id=? AND completed_at IS NULL)
+                """, Boolean.class, id, installer));
+    }
+
+    public boolean finishCorrectiveReview(UUID id, Instant completedAt) {
+        return jdbc.queryForList("""
+                UPDATE installation_corrective_reviews SET completed_at=?
+                WHERE installation_id=? AND completed_at IS NULL
+                RETURNING previous_completed_at
+                """, java.sql.Timestamp.from(completedAt), id).stream()
+                .anyMatch(row -> row.get("previous_completed_at") != null);
+    }
+
     public boolean installerBusy(UUID id) {
         return Boolean.TRUE.equals(
                 jdbc.queryForObject(

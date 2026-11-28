@@ -9,16 +9,16 @@ services:
     volumes: !override ["../smartgn-payments-billing/.local/mqtt:/mosquitto/config:ro", "mqtt-data:/mosquitto/data"]
     extends: {file: ../smartgn-payments-billing/compose.yml, service: broker}
     ports: !override ["127.0.0.1:1885:1883"]
-  billing:
+  payments:
     build: ../smartgn-payments-billing
     volumes: !override ["../smartgn-payments-billing/.local/tax.p12:/run/secrets/tax.p12:ro"]
-    extends: {file: ../smartgn-payments-billing/compose.yml, service: billing}
+    extends: {file: ../smartgn-payments-billing/compose.yml, service: payments}
     ports: !override ["127.0.0.1:28083:8083"]
     environment:
       SUPPORT_BASE_URL: http://support:8082
       IAM_BASE_URL: http://iam:8080
       INSTALLATION_BASE_URL: http://installation:8081
-      MQTT_CLIENT_ID: smartgn-billing-integration
+      MQTT_CLIENT_ID: smartgn-payments-integration
     depends_on:
       db: {condition: service_healthy}
   iam-db:
@@ -44,8 +44,8 @@ services:
       NOTIFICATION_DELIVERY_URL: http://delivery:8091/local-contracts/notifications
       NOTIFICATION_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
       INSTALLATION_BASE_URL: http://installation:8081
-      SMARTGN_BILLING_BASE_URL: http://billing:8083
-      SMARTGN_BILLING_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
+      SMARTGN_PAYMENTS_BASE_URL: http://payments:8083
+      SMARTGN_PAYMENTS_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
       IDENTITY_EVENT_SINK_URL: http://delivery:8091/local-contracts/events
       IDENTITY_EVENT_SINK_TOKEN: ${INTERNAL_SERVICE_TOKEN}
       SPRING_PROFILES_ACTIVE: local-bootstrap
@@ -68,7 +68,7 @@ services:
       EMQX_API_SECRET: ${DEVICE_BROKER_API_SECRET}
       TELEMETRY_BASE_URL: http://telemetry-fixture:8090
       SMARTGN_IAM_BASE_URL: http://iam:8080
-      SMARTGN_EVENTS_SINK_URL: http://billing:8083/internal/v1/events
+      SMARTGN_EVENTS_SINK_URL: http://payments:8083/internal/v1/events
       SMARTGN_EVENTS_SINK_TOKEN: ${INTERNAL_SERVICE_TOKEN}
     depends_on: {installation-db: {condition: service_healthy}}
   delivery:
@@ -100,7 +100,7 @@ services:
       INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
       IAM_BASE_URL: http://iam:8080
       INSTALLATION_BASE_URL: http://installation:8081
-      BILLING_BASE_URL: http://billing:8083
+      PAYMENTS_BASE_URL: http://payments:8083
       PHOTO_PATH: /data/photos
       MQTT_URL: ${SUPPORT_MQTT_URL:-}
       MQTT_USERNAME: support-service
@@ -119,14 +119,14 @@ services:
       IAM_URL: http://iam:8080
       INSTALLATION_URL: http://installation:8081
       SUPPORT_URL: http://support:8082
-      BILLING_URL: http://billing:8083
+      PAYMENTS_URL: http://payments:8083
     ports: ["127.0.0.1:8000:8000"]
     init: true
     depends_on:
       iam: {condition: service_healthy}
       installation: {condition: service_healthy}
       support: {condition: service_healthy}
-      billing: {condition: service_healthy}
+      payments: {condition: service_healthy}
   device-broker:
     image: emqx/emqx:5.8.8
     environment:
